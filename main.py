@@ -32,7 +32,7 @@ class EnhancedTicTacToe:
 
     def on_button_click(self, frame_index, button_index):
         global_index = frame_index * 9 + button_index
-        self.buttons_status[global_index] = 'clicked'
+        self.buttons_status[global_index] = self.current_player
         self.all_buttons[global_index].config(background=self.current_player, state='disabled')
         self.update_frames_status(button_index)
         self.check_winner()
@@ -40,6 +40,13 @@ class EnhancedTicTacToe:
 
 
     def update_frames_status(self, frame_index):
+        if self.frames_status[frame_index] != "none":
+            for i in range(81):
+                if self.buttons_status[i] == 'locked':
+                    self.all_buttons[i].config(state='normal', background=self.default_button_color)
+                    self.buttons_status[i] = 'unlocked'
+            return
+
         # Reset all buttons to disabled unless they belong to the active frame
         for i in range(81):  # Assuming 9x9 grid of buttons
             if self.buttons_status[i] == 'unlocked':
@@ -59,40 +66,81 @@ class EnhancedTicTacToe:
 
 
     def check_winner(self):
+        # Update local winners
         for i in range(9):
             if self.frames_status[i] == "none":
                 self.check_local_winner(i)
+
+        # Check Global Winner
+        # Check rows
+        for i in range(3):
+            if (self.frames_status[3*i] == self.frames_status[3*i + 1] == self.frames_status[3*i + 2] 
+                and self.frames_status[3*i] != "none"):
+                self.show_winner(self.frames_status[3*i])
+                return
+        
+        # Check columns
+        for i in range(3):
+            if (self.frames_status[i] == self.frames_status[i + 3] == self.frames_status[i + 6] 
+                and self.frames_status[i] != "none"):
+                self.show_winner(self.frames_status[i])
+                return
+        
+        # Check diagonals
+        if (self.frames_status[0] == self.frames_status[4] == self.frames_status[8] 
+            and self.frames_status[0] != "none"):
+            self.show_winner(self.frames_status[0])
+            return
+        if (self.frames_status[2] == self.frames_status[4] == self.frames_status[6]
+            and self.frames_status[2] != "none"):
+            self.show_winner(self.frames_status[2])
+            return
+        
+        # Check for a draw
+        if "unlocked" not in self.buttons_status:
+            self.show_winner("draw")
+
     
     def check_local_winner(self, frame_index):
         #check rows
         for i in range(3):
             if (self.buttons_status[frame_index*9 + 3*i] == self.buttons_status[frame_index*9 + 3*i + 1] == self.buttons_status[frame_index*9 + 3*i + 2] 
-                and self.buttons_status[frame_index*9 + 3*i] == 'clicked'):
+                and self.buttons_status[frame_index*9 + 3*i] != 'locked' and self.buttons_status[frame_index*9 + 3*i] != 'unlocked'):
                 self.update_won_frame(frame_index, self.current_player)
                 return
         
         #check columns
         for i in range(3):
             if (self.buttons_status[frame_index*9 + i] == self.buttons_status[frame_index*9 + i + 3] == self.buttons_status[frame_index*9 + i + 6] 
-                and self.buttons_status[frame_index*9 + i] == 'clicked'):
+                and self.buttons_status[frame_index*9 + i] != 'locked' and self.buttons_status[frame_index*9 + i] != 'unlocked'):
                 self.update_won_frame(frame_index, self.current_player)
                 return
             
         #check diagonals
         if (self.buttons_status[frame_index*9] == self.buttons_status[frame_index*9 + 4] == self.buttons_status[frame_index*9 + 8] 
-            and self.buttons_status[frame_index*9] == 'clicked'):
+            and self.buttons_status[frame_index*9] != 'locked' and self.buttons_status[frame_index*9] != 'unlocked'):
             self.update_won_frame(frame_index, self.current_player)
             return
         if (self.buttons_status[frame_index*9 + 2] == self.buttons_status[frame_index*9 + 4] == self.buttons_status[frame_index*9 + 6] 
-            and self.buttons_status[frame_index*9 + 2] == 'clicked'):
+            and self.buttons_status[frame_index*9 + 2] != 'locked' and self.buttons_status[frame_index*9 + 2] != 'unlocked'):
             self.update_won_frame(frame_index, self.current_player)
             return
     
     def update_won_frame(self, frame_index, winner):
         self.frames_status[frame_index] = winner
-        buttons = self.all_buttons[frame_index*9:frame_index*9+9]
-        for button in buttons:
-            button.config(state='disabled', background=winner)
+
+        start_index = frame_index * 9
+        end_index = start_index + 9
+
+        for i in range(start_index, end_index):
+            self.all_buttons[i].config(background=winner, state='disabled')
+            self.buttons_status[i] = winner
+    
+    def show_winner(self, winner):
+        if winner == 'draw':
+            messagebox.showinfo("Game Over", "It's a draw!")
+        else:
+            messagebox.showinfo("Game Over", f"{winner} wins!")
         
 
 EnhancedTicTacToe(tk.Tk())
