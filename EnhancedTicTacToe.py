@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 
 class EnhancedTicTacToe:
-    def __init__(self, root):
+
+    def __init__(self, root, onClick = (lambda frame_index, button_index: None)):
         self.root = root
         self.root.title("Enhanced tic tac toe")
         self.frames = []
@@ -12,6 +13,7 @@ class EnhancedTicTacToe:
         self.current_player = 'red'
         self.default_button_color = 'lightgray'
         self.locked_button_color = 'gray'
+        self.onClick = onClick
         self.create_grids()
     
     def create_grids(self):
@@ -34,8 +36,9 @@ class EnhancedTicTacToe:
         global_index = frame_index * 9 + button_index
         self.buttons_status[global_index] = self.current_player
         self.all_buttons[global_index].config(background=self.current_player, state='disabled')
-        self.update_frames_status(button_index)
         self.check_winner()
+        self.update_frames_status(button_index)
+        self.onClick(frame_index, button_index)
         self.current_player = 'blue' if self.current_player == 'red' else 'red'
 
 
@@ -97,26 +100,26 @@ class EnhancedTicTacToe:
             return
         
         # Check for a draw
-        if "unlocked" not in self.buttons_status:
+        if "unlocked" not in self.buttons_status and "locked" not in self.buttons_status:
             self.show_winner("draw")
 
     
     def check_local_winner(self, frame_index):
-        #check rows
+        # Check rows
         for i in range(3):
             if (self.buttons_status[frame_index*9 + 3*i] == self.buttons_status[frame_index*9 + 3*i + 1] == self.buttons_status[frame_index*9 + 3*i + 2] 
                 and self.buttons_status[frame_index*9 + 3*i] != 'locked' and self.buttons_status[frame_index*9 + 3*i] != 'unlocked'):
                 self.update_won_frame(frame_index, self.current_player)
                 return
         
-        #check columns
+        # Check columns
         for i in range(3):
             if (self.buttons_status[frame_index*9 + i] == self.buttons_status[frame_index*9 + i + 3] == self.buttons_status[frame_index*9 + i + 6] 
                 and self.buttons_status[frame_index*9 + i] != 'locked' and self.buttons_status[frame_index*9 + i] != 'unlocked'):
                 self.update_won_frame(frame_index, self.current_player)
                 return
             
-        #check diagonals
+        # Check diagonals
         if (self.buttons_status[frame_index*9] == self.buttons_status[frame_index*9 + 4] == self.buttons_status[frame_index*9 + 8] 
             and self.buttons_status[frame_index*9] != 'locked' and self.buttons_status[frame_index*9] != 'unlocked'):
             self.update_won_frame(frame_index, self.current_player)
@@ -141,7 +144,4 @@ class EnhancedTicTacToe:
             messagebox.showinfo("Game Over", "It's a draw!")
         else:
             messagebox.showinfo("Game Over", f"{winner} wins!")
-        
-
-EnhancedTicTacToe(tk.Tk())
     
